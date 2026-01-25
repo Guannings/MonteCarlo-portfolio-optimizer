@@ -58,7 +58,7 @@ c. Scenario Planning: How does a "Dollar Cost Averaging" (DCA) strategy perform 
 
 **3. Methodology & Asset Selection**
 
-The model constructs a "Super-Portfolio" using five distinct asset classes, each playing a specific role in the risk/reward ecosystem.
+The model constructs a Portfolio using five distinct asset classes, each playing a specific role in the risk/reward ecosystem.
 
 a. The Growth Engines (Risk-On):
 
