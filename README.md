@@ -12,7 +12,7 @@ Before running the script, open `portfolio_optimizer.py` and **find the configur
 
 ==============================================================================================
 
-⚠️ **Disclaimer and Terms of Use**
+# ⚠️ Disclaimer and Terms of Use
 1. Educational Purpose Only
 
 This software is for educational and research purposes only. It is not intended to be a source of financial advice, and the authors are not registered financial advisors. The algorithms, simulations, and optimization techniques implemented herein are demonstrations of theoretical concepts (Modern Portfolio Theory, Geometric Brownian Motion) and should not be construed as a recommendation to buy, sell, or hold any specific security or asset class.
