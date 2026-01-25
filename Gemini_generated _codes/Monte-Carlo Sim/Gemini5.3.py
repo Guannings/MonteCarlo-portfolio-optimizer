@@ -1,0 +1,173 @@
+import numpy as np
+import pandas as pd
+import yfinance as yf
+from scipy.optimize import minimize
+import matplotlib.pyplot as plt
+import matplotlib.ticker as mtick
+
+
+def run_global_min_variance():
+    print("--- Starting Global 'Minimum Variance' Optimization ---")
+
+    # 1. SETUP
+    stock_tickers = ['GOOGL', 'JPM', 'PEP', 'UNH', 'ASML', 'LVMUY', 'NVS', 'TTE', 'SIEGY']
+    dom_bonds = ['BGRN', 'LQD']
+    bond_etfs = ['TLT', 'IEF']
+    gold = ['GLD']
+    all_tickers = stock_tickers + dom_bonds + bond_etfs + gold
+
+    print(f"Downloading data for {len(all_tickers)} assets...")
+    data = yf.download(all_tickers, start='2020-01-01', end='2026-01-01', auto_adjust=True, progress=False)
+
+    # Safe Data Extraction
+    try:
+        if isinstance(data.columns, pd.MultiIndex):
+            prices = data['Close']
+        else:
+            prices = data['Close'] if 'Close' in data.columns else data
+    except:
+        prices = data
+
+    prices = prices.dropna()
+    returns = prices.pct_change().dropna()
+    print("Data Ready.\n")
+
+    # 2. GLOBAL OPTIMIZATION (MINIMIZE VARIANCE)
+    print("Finding the safest possible allocation...")
+
+    cov_matrix = returns.cov()
+    mean_returns = returns.mean()  # Calculated but not optimized for
+
+    # OBJECTIVE: Minimize Volatility (Standard Deviation)
+    def get_portfolio_volatility(weights):
+        # Annualized Volatility
+        return np.sqrt(np.dot(weights.T, np.dot(cov_matrix, weights))) * np.sqrt(252)
+
+    n_assets = len(all_tickers)
+    init_guess = [1 / n_assets] * n_assets
+
+    # Constraints (Same "Guardrails" as before to ensure it remains a Growth Portfolio)
+    cons = [{'type': 'eq', 'fun': lambda x: np.sum(x) - 1}]
+
+    # Rule A: Stocks between 50% and 85%
+    # (We force it to be an equity portfolio, otherwise MinVar would just buy 100% bonds)
+    cons.append({'type': 'ineq', 'fun': lambda x: np.sum(x[:9]) - 0.50})  # Min 50%
+    cons.append({'type': 'ineq', 'fun': lambda x: 0.85 - np.sum(x[:9])})  # Max 85%
+
+    # Rule B: Bonds at least 10%
+    cons.append({'type': 'ineq', 'fun': lambda x: np.sum(x[9:13]) - 0.10})
+
+    # Rule C: Gold remain 5%
+    cons.append({'type': 'ineq', 'fun': lambda x: np.sum(x[13:]) - 0.05})
+
+
+    # Individual Asset Cap (Diversification)
+    bounds = tuple((0.00, 0.25) for _ in range(n_assets))
+
+    res = minimize(get_portfolio_volatility, init_guess, method='SLSQP', bounds=bounds, constraints=cons, tol=1e-10)
+    final_weights = res.x
+
+    # 3. PRINT WEIGHTS
+    portfolio_weights = dict(zip(all_tickers, final_weights))
+    print("\n" + "=" * 55)
+    print(f"{'GLOBAL MIN VARIANCE PORTFOLIO':^55}")
+    print("=" * 55)
+    print(f"{'Ticker':<10} {'Asset Type':<15} {'Weight (%)':<12} {'Value ($100k)'}")
+    print("-" * 55)
+
+    total_val = 100000
+    for t in all_tickers:
+        if t in stock_tickers:
+            a_type = "Elite Stock"
+        elif t in dom_bonds:
+            a_type = "Yield Bond"
+        elif t in bond_etfs:
+            a_type = "Safety Bond"
+        else:
+            a_type = "Gold"
+
+        w = portfolio_weights[t]
+        if w > 0.001:
+            print(f"{t:<10} {a_type:<15} {w:>10.2%}      ${total_val * w:,.0f}")
+
+    w_stocks_total = np.sum(final_weights[:9])
+    w_bonds_total = np.sum(final_weights[9:13])
+    w_gold_total = final_weights[13]
+
+    print("-" * 55)
+    print(f"MACRO SPLIT: Stocks {w_stocks_total:.1%} | Bonds {w_bonds_total:.1%} | Gold {w_gold_total:.1%}")
+    print("=" * 55)
+
+    # 4. MONTE CARLO
+    print("\nRunning 5,000 Simulations...")
+    n_sims = 5000
+    n_days = 252 * 5
+
+    port_ret = np.dot(final_weights, returns.mean())
+    port_cov = np.dot(final_weights.T, np.dot(returns.cov(), final_weights))
+    port_std = np.sqrt(port_cov)
+
+    drift = port_ret - 0.5 * port_cov
+    Z = np.random.normal(0, 1, (n_days, n_sims))
+    daily_growth = np.exp(drift + port_std * Z)
+
+    price_paths = np.zeros((n_days + 1, n_sims))
+    price_paths[0] = total_val
+    for t in range(1, n_days + 1):
+        price_paths[t] = price_paths[t - 1] * daily_growth[t - 1]
+
+    ending_values = price_paths[-1]
+    sim_cagrs = (ending_values / total_val) ** (1 / 5) - 1
+    mean_cagr = np.mean(sim_cagrs)
+    sharpe = (mean_cagr - 0.035) / (port_std * np.sqrt(252))
+
+    ci_lower = np.percentile(ending_values, 2.5)
+    ci_upper = np.percentile(ending_values, 97.5)
+
+    print("\n" + "=" * 50)
+    print(f"{'PREDICTED PERFORMANCE (5 Years)':^50}")
+    print("=" * 50)
+    print(f"Mean Annual Return:   {mean_cagr:.2%}")
+    print(f"Annual Volatility:    {port_std * np.sqrt(252):.2%}")
+    print(f"Sharpe Ratio:         {sharpe:.2f}")
+    print("-" * 50)
+    print(f"95% CI Lower:         ${ci_lower:,.0f}")
+    print(f"95% CI Upper:         ${ci_upper:,.0f}")
+    print("=" * 50)
+
+    # 5. VISUALIZATION
+    # Chart 1: Spaghetti
+    plt.figure(figsize=(12, 7))
+    colormap = plt.get_cmap('viridis')
+    norm = plt.Normalize(vmin=np.min(ending_values), vmax=np.max(ending_values))
+    indices = np.random.choice(n_sims, 200, replace=False)
+    for i in indices:
+        plt.plot(price_paths[:, i], color=colormap(norm(ending_values[i])), alpha=0.4, linewidth=0.8)
+    plt.plot(np.mean(price_paths, axis=1), color='red', linewidth=3, linestyle='--', label='Mean Path')
+    sm = plt.cm.ScalarMappable(cmap=colormap, norm=norm)
+    sm.set_array([])
+    plt.colorbar(sm, ax=plt.gca(), label='Ending Portfolio Value ($)')
+    plt.title('Global Min-Variance Portfolio: 5-Year Outlook')
+    plt.xlabel('Trading Days')
+    plt.ylabel('Portfolio Value (USD)')
+    plt.legend()
+    plt.grid(True, alpha=0.2)
+    plt.show()
+
+    # Chart 2: Histogram
+    plt.figure(figsize=(12, 7))
+    weights = np.ones_like(sim_cagrs) / len(sim_cagrs)
+    plt.hist(sim_cagrs, bins=70, weights=weights, color='#27ae60', edgecolor='white', alpha=0.85)
+    plt.axvline(mean_cagr, color='red', linewidth=3, label=f'Mean Return: {mean_cagr:.1%}')
+    plt.gca().xaxis.set_major_formatter(mtick.PercentFormatter(1.0))
+    plt.gca().yaxis.set_major_formatter(mtick.PercentFormatter(1.0))
+    plt.title('Return Distribution (Safety First)')
+    plt.xlabel('Annual Return (CAGR)')
+    plt.ylabel('Probability')
+    plt.legend()
+    plt.grid(axis='y', alpha=0.3)
+    plt.show()
+
+
+if __name__ == "__main__":
+    run_global_min_variance()
