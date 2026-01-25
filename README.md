@@ -1,3 +1,18 @@
+# ⚠️ HARDWARE WARNING: HIGH COMPUTATIONAL LOAD
+
+**PLEASE READ BEFORE RUNNING:**
+This script is currently configured to run **1,000,000 (1 Million)** Monte Carlo simulations. This is an extreme stress test intended for high-performance workstations.
+
+* **System Requirements:** Minimum **32GB RAM** and a multi-core processor (e.g., Ryzen 7 / Core i7 or better).
+* **Risk:** Running this on a standard office laptop or non-gaming PC (8GB/16GB RAM) will likely cause a **Memory Overflow (OOM)**, resulting in a system freeze or crash.
+
+**Recommendation for Standard Users:**
+Before running the script, open `portfolio_optimizer.py` and change the configuration line:
+```python
+NUM_SIMULATIONS = 10000  # Change from 1000000 to 10000 or a smaller number
+
+==========================================================================================================================================================================================
+
 ⚠️ Disclaimer and Terms of Use
 1. Educational Purpose Only
 
