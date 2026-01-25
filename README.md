@@ -10,7 +10,7 @@ This script is currently configured to run **1,000,000 (1 Million)** Monte Carlo
 **Recommendation for Standard Users:**
 Before running the script, open `portfolio_optimizer.py` and **find the configuration line: NUM_SIMULATIONS = 1000000** and **change it to 10000 or a smaller number of your choice.**
 
-==============================================================================================
+====================================================================================
 
 # ⚠️ Disclaimer and Terms of Use
 **1. Educational Purpose Only**
@@ -37,7 +37,7 @@ THIS SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPL
 
 **BY USING THIS SOFTWARE, YOU AGREE TO ASSUME ALL RISKS ASSOCIATED WITH YOUR INVESTMENT DECISIONS AND RELEASE THE AUTHOR FROM ANY LIABILITY REGARDING YOUR FINANCIAL OUTCOMES.**
 
-==============================================================================================
+====================================================================================
 
 # Project Case Study: Quantitative Portfolio Optimization Engine
 **1. Executive Summary**
@@ -116,7 +116,7 @@ a. Optimal Allocation: Heavily weighted toward SPYM (~60%) and QQQ (~23%), with 
 
 b. Projected Outcome: The simulation predicts a mean annualized return (CAGR) significantly outperforming a standard savings account, with a 95% probability of positive returns over a 5-year period.
 
-==============================================================================================
+====================================================================================
 
 # Acknowledgments & Methodology 
 This project was developed using an AI-Assisted Workflow. 
