@@ -48,7 +48,7 @@ The system targets a specific volatility profile (14% annualized risk) and valid
 
 **2. The Problem Statement**
 
-I wanted to apply dynamic, data-driven modeling to personal asset management to answer three key questions:
+The author wanted to apply dynamic, data-driven modeling to personal asset management to answer three key questions:
 
 a. Efficiency: Can we mathematically beat the standard market index by optimizing asset weights?
 
