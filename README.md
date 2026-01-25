@@ -119,9 +119,9 @@ b. Projected Outcome: The simulation predicts a mean annualized return (CAGR) si
 ====================================================================================
 
 # Acknowledgments & Methodology 
-This project was developed using an AI-Assisted Workflow. 
+**The conceptual architecture, financial strategy, asset selection, and risk constraints were designed by the author.**
 
-The conceptual architecture, financial strategy, asset selection, and risk constraints were designed by the author. 
+This project was developed using an AI-Assisted Workflow. 
 
 The underlying Python syntax and library implementation were generated via Large Language Models (Gemini), demonstrating a modern approach to rapid prototyping and financial modeling where technical execution is accelerated by AI. 
 
