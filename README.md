@@ -94,9 +94,9 @@ c. The sum of weights must strictly equal 100%.
 
 Historical data is limited—it only shows us one version of the past. To understand the future, the author implemented a Monte Carlo Simulation.
 
-This engine generates 10,000 theoretical future market paths based on the statistical properties (drift and standard deviation) of the optimized portfolio.
+This engine generates 1,000,000 theoretical future market paths based on the statistical properties (drift and standard deviation) of the optimized portfolio.
 
-Why this matters: In the real world, we often deal with uncertainty. This simulation moves beyond "average returns" to look at tail risks—specifically, the 95% Value at Risk (VaR). It answers the critical question: "In the worst 5% of possible futures, is the portfolio still solvent?"
+In the real world, we often deal with uncertainty. This simulation moves beyond "average returns" to look at tail risks—specifically, the 95% Value at Risk (VaR). It answers the critical question: "In the worst 5% of possible futures, is the portfolio still solvent?"
 
 **6. Technology Stack & AI Integration**
 
