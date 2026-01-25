@@ -110,7 +110,7 @@ c. AI Implementation: Large Language Models (LLMs) were utilized to accelerate s
 
 **7. Key Findings**
 
-The model rejected a balanced approach in favor of an aggressive growth strategy suitable for a long-time horizon (Student/Early Career profile):
+The model rejected a balanced approach in favor of an aggressive growth strategy suitable for a long-time horizon:
 
 a. Optimal Allocation: Heavily weighted toward SPYM (~60%) and QQQ (~23%), with minor allocations to hedges.
 
