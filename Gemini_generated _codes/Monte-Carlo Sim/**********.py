@@ -11,7 +11,7 @@ def run_final_super_sim():
 
     # 1. DEFINE THE 5 ASSETS
 
-    core_stocks = ['SPLG' , 'QQQ' ]
+    core_stocks = ['SPYM', 'QQQ']
     new_stocks = ['VEA']
     bonds = ['TLT']
     gold = ['GLDM']
