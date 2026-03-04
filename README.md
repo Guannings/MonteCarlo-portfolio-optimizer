@@ -526,6 +526,671 @@ b. Projected Outcome: The simulation predicts a mean annualized return (CAGR) si
 
 ====================================================================================
 
+# Appendix: Full Mathematical Derivations
+
+This appendix derives every core formula used in the code from first principles. Each derivation starts from the simplest possible foundation and builds up step by step. Cross-references to the corresponding code lines in [`latest_code.py`](https://github.com/Guannings/MonteCarlo-Portfolio-Optimizer/blob/49b0e61/Gemini_generated%20_codes/Monte-Carlo%20Sim/latest_code.py) are provided throughout.
+
+---
+
+## A.1 — Daily Return
+
+**Code reference:** [line 38](https://github.com/Guannings/MonteCarlo-Portfolio-Optimizer/blob/49b0e61/Gemini_generated%20_codes/Monte-Carlo%20Sim/latest_code.py#L38)
+
+**Starting point:** We have a time series of daily closing prices for an asset: P₀, P₁, P₂, ..., Pₙ.
+
+**Goal:** Measure how much the price changed each day, as a proportion of the previous day's price.
+
+**Derivation:**
+
+The **simple return** on day t is defined as:
+
+```
+rₜ = (Pₜ - Pₜ₋₁) / Pₜ₋₁
+```
+
+This can be rewritten as:
+
+```
+rₜ = Pₜ / Pₜ₋₁ - 1
+```
+
+Both forms say the same thing: "the new price divided by the old price, minus 1." If the price went from $100 to $103, the return is `103/100 - 1 = 0.03` (3%). If it dropped to $95, the return is `95/100 - 1 = -0.05` (-5%).
+
+**Why use returns instead of raw prices?** Because returns are *scale-independent*. A $1 move on a $10 stock (10% return) is a much bigger deal than a $1 move on a $500 stock (0.2% return). Returns let us compare assets of different price levels on equal footing.
+
+---
+
+## A.2 — Mean (Expected) Daily Return
+
+**Code reference:** [line 45](https://github.com/Guannings/MonteCarlo-Portfolio-Optimizer/blob/49b0e61/Gemini_generated%20_codes/Monte-Carlo%20Sim/latest_code.py#L45)
+
+**Starting point:** A series of daily returns r₁, r₂, ..., rₙ for one asset.
+
+**Goal:** Estimate the asset's "typical" daily performance.
+
+**Derivation:**
+
+The **arithmetic mean** is:
+
+```
+μ = (1/N) × Σᵢ rᵢ   (for i = 1 to N)
+```
+
+In plain English: add up all N daily returns, then divide by N. This gives the average daily return.
+
+**Example with 5 days:** Returns are +2%, -1%, +0.5%, +1.5%, -0.5%.
+
+```
+μ = (0.02 + (-0.01) + 0.005 + 0.015 + (-0.005)) / 5
+μ = 0.025 / 5
+μ = 0.005  (i.e., 0.5% per day on average)
+```
+
+**Why the arithmetic mean?** The code uses it as an input to the optimizer (Formula 4) and the Monte Carlo simulation (Formula 7). It represents the *expected value* — the return you would predict for any given future day if you had no other information. It is the simplest unbiased estimator of the true daily expected return.
+
+---
+
+## A.3 — Covariance and the Covariance Matrix
+
+**Code reference:** [line 44](https://github.com/Guannings/MonteCarlo-Portfolio-Optimizer/blob/49b0e61/Gemini_generated%20_codes/Monte-Carlo%20Sim/latest_code.py#L44)
+
+**Starting point:** Daily returns for two assets, A and B: (rᴬ₁, rᴮ₁), (rᴬ₂, rᴮ₂), ..., (rᴬₙ, rᴮₙ).
+
+**Goal:** Measure whether A and B tend to move in the same direction or opposite directions.
+
+### Step 1: Variance (one asset)
+
+First, consider just one asset A. Its **variance** measures how spread out its returns are around its mean:
+
+```
+Var(A) = (1/N) × Σᵢ (rᴬᵢ - μᴬ)²
+```
+
+- `rᴬᵢ - μᴬ` = how far day i's return was from the average. This is called the **deviation**.
+- Squaring it makes all deviations positive (so above-average and below-average days don't cancel out) and penalizes large deviations more than small ones.
+- Averaging all the squared deviations gives the variance.
+
+**Example:** If an asset's returns are +3%, -1%, +2%, with mean = +1.33%, then:
+```
+Var = [(3-1.33)² + (-1-1.33)² + (2-1.33)²] / 3
+    = [2.79 + 5.43 + 0.45] / 3
+    = 2.89 (in squared-percentage units)
+```
+
+### Step 2: Standard Deviation
+
+Variance is in "squared" units, which is hard to interpret. The **standard deviation** is simply the square root of variance, which puts it back into the same units as the original returns:
+
+```
+σᴬ = √Var(A)
+```
+
+In our example: `σ = √2.89 ≈ 1.70%`. This tells us "on a typical day, the asset's return deviates about 1.70 percentage points from its average."
+
+### Step 3: Covariance (two assets)
+
+Now bring in a second asset B. The **covariance** between A and B is:
+
+```
+Cov(A, B) = (1/N) × Σᵢ (rᴬᵢ - μᴬ)(rᴮᵢ - μᴮ)
+```
+
+Instead of squaring one asset's deviation, we *multiply* A's deviation by B's deviation on the same day.
+
+- If both are above average on the same day: `(+) × (+) = (+)`. Positive contribution.
+- If both are below average on the same day: `(-) × (-) = (+)`. Also positive.
+- If one is above and the other below: `(+) × (-) = (-)`. Negative contribution.
+
+If the average of all these products is **positive**, the two assets tend to move together. If **negative**, they tend to move in opposite directions (this is what makes them good diversifiers).
+
+**Important special case:** `Cov(A, A) = Var(A)`. An asset's covariance with *itself* is just its own variance.
+
+### Step 4: The Full Covariance Matrix (Σ)
+
+With 6 assets, we compute covariance for every possible pair. This gives us a 6×6 table (matrix), denoted **Σ** (capital Sigma):
+
+```
+        SPYM     QQQ      VEA      AGG      GLDM     BTC
+SPYM  [ Var(S)   Cov(S,Q) Cov(S,V) Cov(S,A) Cov(S,G) Cov(S,B) ]
+QQQ   [ Cov(Q,S) Var(Q)   Cov(Q,V) Cov(Q,A) Cov(Q,G) Cov(Q,B) ]
+VEA   [ Cov(V,S) Cov(V,Q) Var(V)   Cov(V,A) Cov(V,G) Cov(V,B) ]
+AGG   [ Cov(A,S) Cov(A,Q) Cov(A,V) Var(A)   Cov(A,G) Cov(A,B) ]
+GLDM  [ Cov(G,S) Cov(G,Q) Cov(G,V) Cov(G,A) Var(G)   Cov(G,B) ]
+BTC   [ Cov(B,S) Cov(B,Q) Cov(B,V) Cov(B,A) Cov(B,G) Var(B)   ]
+```
+
+Properties of this matrix:
+- The **diagonal** entries are each asset's own variance.
+- The matrix is **symmetric**: `Cov(A,B) = Cov(B,A)` (the order doesn't matter).
+- There are `6 × 6 = 36` cells, but because of symmetry, only `6 + 15 = 21` are unique (6 variances + 15 unique pairs).
+
+---
+
+## A.4 — Expected Portfolio Return
+
+**Code reference:** [lines 50–51](https://github.com/Guannings/MonteCarlo-Portfolio-Optimizer/blob/49b0e61/Gemini_generated%20_codes/Monte-Carlo%20Sim/latest_code.py#L50-L51)
+
+**Starting point:** 6 assets with mean daily returns μ₁, μ₂, ..., μ₆, and weights w₁, w₂, ..., w₆.
+
+**Goal:** Calculate the expected daily return of the combined portfolio, then annualize it.
+
+### Step 1: Daily portfolio return
+
+On any given day t, the portfolio return is the weighted sum of individual asset returns:
+
+```
+Rₚ,ₜ = w₁r₁,ₜ + w₂r₂,ₜ + ... + w₆r₆,ₜ
+```
+
+This is because if you put 60% into Asset 1 and it goes up 2%, that contributes `0.60 × 2% = 1.2%` to your overall portfolio return. Add up contributions from all 6 assets and you get the total portfolio return for that day.
+
+### Step 2: Expected value
+
+The **expected value** (mean) of a sum is the sum of the expected values:
+
+```
+E[Rₚ] = w₁E[r₁] + w₂E[r₂] + ... + w₆E[r₆]
+       = w₁μ₁ + w₂μ₂ + ... + w₆μ₆
+```
+
+This is a basic property of expectations in probability theory, and it holds regardless of how the assets are correlated.
+
+### Step 3: Annualization
+
+To convert from daily to annual, multiply by the number of trading days:
+
+```
+E[Rₚ,annual] = E[Rₚ,daily] × 252
+```
+
+**Why 252?** Stock markets are open approximately 252 days per year (365 days minus weekends and holidays). If you expect to earn 0.05% per day, your annual expectation is `0.05% × 252 = 12.6%`.
+
+**Why simple multiplication works for returns:** This is an approximation. It assumes that daily returns are small enough that compounding effects are negligible at the daily level. For typical daily returns of 0.01%–0.10%, this approximation is extremely accurate.
+
+### Step 4: The negation trick
+
+Since `scipy.optimize.minimize` can only minimize, the code negates the return:
+
+```
+Objective = -(w₁μ₁ + w₂μ₂ + ... + w₆μ₆) × 252
+```
+
+Minimizing `-R` is mathematically identical to maximizing `R`.
+
+---
+
+## A.5 — Portfolio Volatility (The Matrix Formula)
+
+**Code reference:** [lines 54–56](https://github.com/Guannings/MonteCarlo-Portfolio-Optimizer/blob/49b0e61/Gemini_generated%20_codes/Monte-Carlo%20Sim/latest_code.py#L54-L56)
+
+**Starting point:** Weights w₁...w₆, covariance matrix Σ.
+
+**Goal:** Calculate the portfolio's overall volatility (standard deviation of returns).
+
+This is the most important derivation in the entire project, because it captures *why diversification works mathematically*.
+
+### Step 1: Start with 2 assets
+
+Let's first derive this for a simple 2-asset portfolio, then generalize.
+
+Portfolio return on day t:
+```
+Rₚ = w₁r₁ + w₂r₂
+```
+
+The **variance of a sum** of random variables is NOT just the sum of variances. The full rule from probability theory is:
+
+```
+Var(aX + bY) = a²Var(X) + b²Var(Y) + 2ab·Cov(X,Y)
+```
+
+Applying this to our portfolio (where a = w₁, b = w₂, X = r₁, Y = r₂):
+
+```
+Var(Rₚ) = w₁²Var(r₁) + w₂²Var(r₂) + 2w₁w₂Cov(r₁,r₂)
+```
+
+**This is the key insight:** The portfolio's risk depends not just on each asset's individual risk (`Var(r₁)`, `Var(r₂)`), but also on how they interact (`Cov(r₁,r₂)`). If the covariance is negative (they move in opposite directions), the third term *reduces* the total variance. This is why mixing negatively-correlated assets reduces risk.
+
+### Step 2: Expand to N assets
+
+For N assets, the same logic extends:
+
+```
+Var(Rₚ) = ΣᵢΣⱼ wᵢwⱼCov(rᵢ,rⱼ)
+```
+
+This is a double sum: for every pair of assets (i, j), multiply their weights together and multiply by their covariance, then add everything up. Note that when i = j, `Cov(rᵢ,rᵢ) = Var(rᵢ)`, so the individual variances are included as special cases.
+
+### Step 3: Write it as a matrix multiplication
+
+The double sum above is exactly what matrix multiplication does. If we define:
+
+- **w** = column vector of weights: `[w₁, w₂, ..., w₆]ᵀ`
+- **Σ** = the 6×6 covariance matrix
+
+Then:
+
+```
+Var(Rₚ) = wᵀΣw
+```
+
+**Why this works:** The matrix multiplication `Σw` produces a vector where each entry is a weighted sum of covariances. Then `wᵀ` (the weights as a row) multiplies and sums those entries, giving the single number we need. It's a compact notation for the double sum.
+
+**Concrete 2-asset example:** Let w = [0.6, 0.4] and:
+```
+Σ = [ 0.04   0.01 ]    (Var of Asset 1 = 0.04, Var of Asset 2 = 0.02, Cov = 0.01)
+    [ 0.01   0.02 ]
+```
+
+```
+Σw = [ 0.04×0.6 + 0.01×0.4 ] = [ 0.028 ]
+     [ 0.01×0.6 + 0.02×0.4 ]   [ 0.014 ]
+
+wᵀΣw = 0.6×0.028 + 0.4×0.014 = 0.0168 + 0.0056 = 0.0224
+```
+
+### Step 4: From variance to standard deviation
+
+```
+σₚ,daily = √(wᵀΣw)
+```
+
+The square root converts variance (squared units) back to standard deviation (same units as returns).
+
+In our example: `σ = √0.0224 ≈ 0.1497`, or about 14.97% daily.
+
+### Step 5: Annualization — why √252, not 252
+
+**Claim:** If daily returns are independent, then:
+```
+Var(annual return) = 252 × Var(daily return)
+σ(annual) = √252 × σ(daily)
+```
+
+**Proof:** The annual return is approximately the sum of 252 daily returns. A fundamental property of independent random variables states:
+
+```
+Var(X₁ + X₂ + ... + X₂₅₂) = Var(X₁) + Var(X₂) + ... + Var(X₂₅₂)
+```
+
+If each day has the same variance σ²:
+
+```
+Var(annual) = 252 × σ²
+```
+
+Taking the square root of both sides:
+
+```
+σ(annual) = √(252 × σ²) = √252 × σ ≈ 15.87 × σ
+```
+
+**Intuition:** Risk doesn't grow as fast as time. If you flip a coin 4 times instead of 1, you don't get 4× more deviation from 50/50 — you get 2× more (√4 = 2). The same applies to portfolio returns.
+
+### Final formula:
+
+```
+σₚ,annual = √(wᵀΣw) × √252
+```
+
+The constraint in the code checks that this value does not exceed 18%.
+
+---
+
+## A.6 — Geometric Brownian Motion (GBM)
+
+**Code reference:** [lines 127–134](https://github.com/Guannings/MonteCarlo-Portfolio-Optimizer/blob/49b0e61/Gemini_generated%20_codes/Monte-Carlo%20Sim/latest_code.py#L127-L134)
+
+This is the mathematical model used to simulate how the portfolio's value evolves over time. GBM is the standard model in quantitative finance (it underpins the Black-Scholes option pricing formula).
+
+### Step 1: The continuous-time model
+
+GBM assumes that the portfolio value S follows this **stochastic differential equation** (SDE):
+
+```
+dS/S = μ dt + σ dW
+```
+
+In words: "The percentage change in portfolio value over a tiny time interval dt equals:
+- a deterministic drift `μ dt` (the expected return), plus
+- a random shock `σ dW` (volatility times a random Brownian increment)."
+
+`dW` is a **Wiener process** increment — a random draw from a Normal distribution with mean 0 and variance dt.
+
+### Step 2: Solving the SDE — where the Itô correction comes from
+
+To simulate prices, we need to solve for S(t). Using **Itô's Lemma** (the stochastic calculus version of the chain rule), we apply a change of variables by taking the natural logarithm of S:
+
+Let `Y = ln(S)`. By Itô's Lemma:
+
+```
+dY = d(ln S) = (1/S)dS - (1/2)(1/S²)(dS)²
+```
+
+The `- (1/2)(1/S²)(dS)²` term is what makes stochastic calculus different from ordinary calculus. In ordinary calculus, `(dt)²` is negligible. But in stochastic calculus, `(dW)²` behaves like `dt` (this is called the **quadratic variation** of Brownian motion), so this term does NOT vanish.
+
+Substituting `dS = S(μ dt + σ dW)`:
+
+```
+(dS)² = S²(μ dt + σ dW)² ≈ S²σ² dt   (keeping only the dt-order term)
+```
+
+Therefore:
+
+```
+dY = (μ - ½σ²)dt + σ dW
+```
+
+The `- ½σ²` is the **Itô correction**. It emerges naturally from the mathematics of stochastic calculus and is NOT an arbitrary adjustment.
+
+### Step 3: Integrating over one time step
+
+Over a discrete time step Δt (one trading day, so Δt = 1/252):
+
+```
+ln(Sₜ) - ln(Sₜ₋₁) = (μ - ½σ²)Δt + σ√Δt × Z
+```
+
+where Z ~ N(0,1) is a standard normal random variable.
+
+Exponentiating both sides:
+
+```
+Sₜ/Sₜ₋₁ = exp[(μ - ½σ²)Δt + σ√Δt × Z]
+```
+
+Which gives us the **price evolution formula**:
+
+```
+Sₜ = Sₜ₋₁ × exp[(μ - ½σ²)Δt + σ√Δt × Z]
+```
+
+### Step 4: Simplification used in the code
+
+The code uses daily time steps where Δt = 1/252. However, since the input parameters (port_ret and port_std) are already in daily units (not annualized), the code simplifies to Δt = 1:
+
+```
+drift = port_ret - 0.5 × port_cov         (Itô-corrected daily drift)
+daily_growth = exp(drift + port_std × Z)   (one day's growth factor)
+Sₜ = Sₜ₋₁ × daily_growth                  (compound forward)
+```
+
+### Why the Itô correction matters — numerical proof
+
+Without the correction (using `drift = port_ret` instead of `port_ret - 0.5 × port_cov`):
+
+Suppose daily return μ = 0.05% and daily variance σ² = 0.01%. Over 252 days, the naive expected growth factor would be:
+
+```
+E[exp(μ × 252)] = exp(0.0005 × 252) = exp(0.126) ≈ 1.1342  (13.42% annual)
+```
+
+But the actual expected growth of `exp(μ + σZ)` is:
+
+```
+E[exp(μ + σZ)] = exp(μ + ½σ²)   (property of log-normal distribution)
+```
+
+So over 252 days, the compounded expected value is:
+
+```
+E[S₂₅₂/S₀] = exp[(μ + ½σ²) × 252]
+```
+
+This is *higher* than `exp(μ × 252)` — the simulation would overestimate returns. By subtracting `½σ²` from the drift, we ensure:
+
+```
+E[S₂₅₂/S₀] = exp[(μ - ½σ² + ½σ²) × 252] = exp[μ × 252]
+```
+
+The correction makes the simulation's expected growth rate match the true expected return.
+
+---
+
+## A.7 — The Normal Distribution and Z-Scores
+
+**Code reference:** [line 128](https://github.com/Guannings/MonteCarlo-Portfolio-Optimizer/blob/49b0e61/Gemini_generated%20_codes/Monte-Carlo%20Sim/latest_code.py#L128)
+
+The **Normal (Gaussian) Distribution** is defined by its probability density function:
+
+```
+f(z) = (1 / √(2π)) × e^(-z²/2)
+```
+
+Key properties:
+- **Mean = 0**: the distribution is centered at zero.
+- **Standard deviation = 1**: about 68% of values fall between -1 and +1.
+- **Symmetry**: the curve is perfectly symmetric around 0.
+- **Tail probabilities:**
+  - ~95.4% of values fall within ±2 standard deviations.
+  - ~99.7% of values fall within ±3 standard deviations.
+  - Values beyond ±4 occur about 0.006% of the time.
+
+**Why does finance use the Normal distribution?** The **Central Limit Theorem** states that the sum of many independent random effects (news events, trades, sentiment shifts) tends toward a Normal distribution, regardless of the distribution of each individual effect. Daily stock returns, being the aggregate of millions of trades, approximately follow this pattern.
+
+**Limitation:** Real market returns have "fatter tails" than the Normal distribution predicts — extreme events (crashes, bubbles) occur more often than the bell curve would suggest. GBM with Normal shocks will underestimate the probability of extreme outcomes.
+
+---
+
+## A.8 — CAGR (Compound Annual Growth Rate)
+
+**Code reference:** [line 139](https://github.com/Guannings/MonteCarlo-Portfolio-Optimizer/blob/49b0e61/Gemini_generated%20_codes/Monte-Carlo%20Sim/latest_code.py#L139)
+
+**Starting point:** The compound interest formula.
+
+### Step 1: Compound interest
+
+If you invest an amount P₀ and it grows at a constant annual rate g for T years:
+
+```
+Pₜ = P₀ × (1 + g)ᵀ
+```
+
+### Step 2: Solving for g
+
+We know P₀ (starting value) and Pₜ (ending value). We want to find g. Rearranging:
+
+```
+(1 + g)ᵀ = Pₜ / P₀
+```
+
+Take the T-th root of both sides (equivalently, raise to the power 1/T):
+
+```
+1 + g = (Pₜ / P₀)^(1/T)
+```
+
+Subtract 1:
+
+```
+g = (Pₜ / P₀)^(1/T) - 1
+```
+
+This is the **CAGR formula**. It answers: "what constant annual rate would turn P₀ into Pₜ over T years?"
+
+### Step 3: Application in the code
+
+With P₀ = $100,000, T = 5 years, and each simulation producing a different Pₜ:
+
+```
+CAGR = (ending_value / 100,000)^(1/5) - 1
+```
+
+**Worked example:**
+- Start: $100,000. End: $207,893.
+- Ratio: `207,893 / 100,000 = 2.07893`
+- Fifth root: `2.07893^0.2 = 1.1576`
+- CAGR: `1.1576 - 1 = 0.1576` = 15.76% per year
+
+This means $100,000 growing at a steady 15.76% for 5 years would reach $207,893.
+
+---
+
+## A.9 — Sharpe Ratio
+
+**Code reference:** [line 141](https://github.com/Guannings/MonteCarlo-Portfolio-Optimizer/blob/49b0e61/Gemini_generated%20_codes/Monte-Carlo%20Sim/latest_code.py#L141)
+
+**Starting point:** William Sharpe's 1966 insight that return alone is meaningless without considering risk.
+
+### Derivation
+
+The Sharpe Ratio is defined as:
+
+```
+S = (Rₚ - Rᶠ) / σₚ
+```
+
+Where:
+- `Rₚ` = the portfolio's expected return (annualized).
+- `Rᶠ` = the risk-free rate (the return from a "zero-risk" investment like government bonds). In the code: 3.5%.
+- `σₚ` = the portfolio's annualized standard deviation (volatility).
+
+**What the numerator means:** `Rₚ - Rᶠ` is the **excess return** — the extra return you earn *above* what you could get risk-free. If you earn 15% but could get 3.5% risk-free, your excess return is 11.5%. This is the reward for taking risk.
+
+**What the denominator means:** `σₚ` is the risk you took to earn that excess return.
+
+**What the ratio means:** Return per unit of risk. If Sharpe = 0.64, you earned 0.64% excess return for every 1% of volatility you endured.
+
+**Interpretation benchmarks:**
+- `S < 0` — you did worse than the risk-free rate. Should have just bought bonds.
+- `S = 0 to 0.5` — poor to mediocre risk-adjusted return.
+- `S = 0.5 to 1.0` — good.
+- `S = 1.0 to 2.0` — very good.
+- `S > 2.0` — exceptional (rare for long-term strategies).
+
+---
+
+## A.10 — Annualized Volatility (The √T Rule)
+
+**Code reference:** [line 153](https://github.com/Guannings/MonteCarlo-Portfolio-Optimizer/blob/49b0e61/Gemini_generated%20_codes/Monte-Carlo%20Sim/latest_code.py#L153)
+
+### Full derivation of the √T scaling rule
+
+**Claim:** If daily returns are independent and identically distributed with variance σ²daily, then the variance of the T-day return is T × σ²daily, and the standard deviation of the T-day return is √T × σdaily.
+
+**Proof:**
+
+Let R₁, R₂, ..., Rₜ be T independent daily returns, each with variance σ².
+
+The T-day return (approximately) is:
+
+```
+R_total = R₁ + R₂ + ... + Rₜ
+```
+
+By the **independence property of variance**:
+
+```
+Var(R_total) = Var(R₁) + Var(R₂) + ... + Var(Rₜ)
+```
+
+(Note: this is ONLY valid because the returns are independent. If they were correlated, there would be covariance terms.)
+
+Since each Var(Rᵢ) = σ²:
+
+```
+Var(R_total) = T × σ²
+```
+
+Taking the square root:
+
+```
+σ_total = √(T × σ²) = √T × σ
+```
+
+For annualization: T = 252 trading days, so:
+
+```
+σ_annual = √252 × σ_daily ≈ 15.87 × σ_daily
+```
+
+**Concrete example:** If daily std dev = 1%, then annual std dev ≈ 15.87%. NOT 252% (which is what you'd get if risk scaled linearly).
+
+---
+
+## A.11 — Percentiles and the 95% Confidence Interval
+
+**Code reference:** [lines 144–147](https://github.com/Guannings/MonteCarlo-Portfolio-Optimizer/blob/49b0e61/Gemini_generated%20_codes/Monte-Carlo%20Sim/latest_code.py#L144-L147)
+
+### Definition
+
+The **p-th percentile** of a dataset is the value below which p% of the data falls.
+
+Given N = 1,000,000 simulation outcomes sorted from smallest to largest:
+
+```
+Position of the p-th percentile = ⌈(p/100) × N⌉
+```
+
+- The **2.5th percentile** is at position `⌈0.025 × 1,000,000⌉ = 25,000`. This means 25,000 simulations (out of 1,000,000) ended up below this value — only the worst 2.5%.
+- The **97.5th percentile** is at position `⌈0.975 × 1,000,000⌉ = 975,000`. Only the best 2.5% of simulations exceeded this value.
+
+### Why 2.5% and 97.5%?
+
+Together they form the **95% confidence interval**: the middle 95% of outcomes fall between these two values. This is a standard statistical convention — 95% is wide enough to be reliable but narrow enough to be informative.
+
+```
+95% CI = [P₂.₅, P₉₇.₅]
+```
+
+**Interpretation:** "We are 95% confident that the true outcome will fall within this range." Or equivalently: "In 950,000 out of 1,000,000 simulated futures, the portfolio ended up between $X and $Y."
+
+### The relationship to the Normal distribution
+
+For a Normal distribution with mean μ and standard deviation σ:
+
+```
+P₂.₅ ≈ μ - 1.96σ
+P₉₇.₅ ≈ μ + 1.96σ
+```
+
+The factor 1.96 comes from the inverse of the Normal cumulative distribution function. However, the code does not assume normality — it directly computes percentiles from the raw simulation data, which is more robust.
+
+---
+
+## A.12 — Summary: How All Formulas Connect
+
+The formulas in this codebase form two pipelines:
+
+**Pipeline 1: Optimization (finding the best weights)**
+```
+Raw Prices
+  → Formula 1 (Daily Returns)
+    → Formula 2 (Mean Returns) ──────────────┐
+    → Formula 3 (Covariance Matrix) ─────────┤
+                                              ▼
+                                    Formula 4 (Objective: maximize return)
+                                    Formula 5 (Constraint: cap volatility)
+                                    Formula 6 (Constraint: weights sum to 1)
+                                              │
+                                              ▼
+                                         SLSQP Optimizer
+                                              │
+                                              ▼
+                                      Optimal Weights [w₁...w₆]
+```
+
+**Pipeline 2: Monte Carlo Simulation (stress-testing the weights)**
+```
+Optimal Weights
+  → Formula 7 (Portfolio daily return)
+  → Formula 8 (Portfolio variance)
+  → Formula 9 (Portfolio std dev)
+    → Formula 10 (GBM drift with Itô correction)
+    → Formula 11 (1.26 billion random shocks)
+      → Formula 12 (Daily growth factors)
+        → Formula 13 (Compound 1,260 days × 1M paths)
+          → Formula 14 (CAGR for each path)
+            → Formula 15 (Sharpe Ratio)
+            → Formula 16 (Annualized Volatility)
+            → Formula 17 (95% Confidence Interval)
+
+Formula 18 (Monthly Allocation) is a standalone calculation using the optimal weights.
+```
+
+====================================================================================
+
 # Acknowledgments & Methodology
 **The conceptual architecture, financial strategy, asset selection, and risk constraints were designed by the author.**
 
