@@ -180,7 +180,7 @@ In the code:
 
 **Formula 5: Portfolio Volatility (Risk Constraint)** ([lines 54–56](https://github.com/Guannings/MonteCarlo-Portfolio-Optimizer/blob/49b0e61/Gemini_generated%20_codes/Monte-Carlo%20Sim/latest_code.py#L54-L56))
 
-$$\sigma_p = \sqrt{\mathbf{w}^\top \Sigma\, \mathbf{w}} \;\times\; \sqrt{252}$$
+$$\sigma_p = \sqrt{\mathbf{w}^\top \Sigma \; \mathbf{w}} \;\times\; \sqrt{252}$$
 
 This looks scary, so let's break it down piece by piece:
 
@@ -188,7 +188,7 @@ This looks scary, so let's break it down piece by piece:
 - $\mathbf{w}^\top$ = the same list, but flipped sideways into a horizontal row. (The $\top$ just means "transpose" — flip the column into a row.)
 - $\Sigma$ (Sigma) = the covariance matrix from Formula 3.
 
-**What the multiplication $\mathbf{w}^\top \Sigma\, \mathbf{w}$ actually does:** It takes every pair of assets, multiplies their covariance by both of their weights, and adds it all up. The result is a single number that captures the total risk of the *combined* portfolio — accounting for both how much each asset swings individually AND how much they cancel each other out (or reinforce each other).
+**What the multiplication $\mathbf{w}^\top \Sigma \; \mathbf{w}$ actually does:** It takes every pair of assets, multiplies their covariance by both of their weights, and adds it all up. The result is a single number that captures the total risk of the *combined* portfolio — accounting for both how much each asset swings individually AND how much they cancel each other out (or reinforce each other).
 
 **Concrete analogy:** Imagine you are mixing paints. Each paint (asset) has its own "intensity" (volatility). But when you mix them, the result is not just the average intensity — it depends on whether the colors *reinforce* each other (positive covariance, like mixing two reds → even redder) or *cancel* each other out (negative covariance, like mixing red + green → muted brown). The covariance matrix is the lookup table that tells you how every pair interacts.
 
@@ -234,7 +234,7 @@ port_ret = np.dot(final_weights, returns.mean())
 
 **Formula 8: Portfolio Variance** ([line 124](https://github.com/Guannings/MonteCarlo-Portfolio-Optimizer/blob/49b0e61/Gemini_generated%20_codes/Monte-Carlo%20Sim/latest_code.py#L124))
 
-$$\sigma_p^2 = \mathbf{w}^\top \Sigma\, \mathbf{w}$$
+$$\sigma_p^2 = \mathbf{w}^\top \Sigma \; \mathbf{w}$$
 
 This is the same matrix multiplication as inside Formula 5, but **without** the square root and **without** the `× √252`. It gives us the raw daily variance of the portfolio — a number we need as an ingredient for the next two formulas.
 
@@ -278,7 +278,7 @@ drift = port_ret - 0.5 * port_cov
 
 **Formula 11: Random Shocks (Z-scores)** ([line 128](https://github.com/Guannings/MonteCarlo-Portfolio-Optimizer/blob/49b0e61/Gemini_generated%20_codes/Monte-Carlo%20Sim/latest_code.py#L128))
 
-$$Z \sim \mathcal{N}(0,\, 1)$$
+$$Z \sim \mathcal{N}(0, 1)$$
 
 A **Normal Distribution** (also called a "bell curve") is the classic shape where most values cluster near the middle and extreme values are rare. Think of it like human heights: most people are near average, a few are very tall or very short, and almost nobody is 8 feet tall.
 
@@ -294,7 +294,7 @@ Z = np.random.normal(0, 1, (n_days, n_sims))
 
 **Formula 12: Daily Growth Factor (GBM Core)** ([line 129](https://github.com/Guannings/MonteCarlo-Portfolio-Optimizer/blob/49b0e61/Gemini_generated%20_codes/Monte-Carlo%20Sim/latest_code.py#L129))
 
-$$G_t = e^{\,\text{drift} \;+\; \sigma_p \,\cdot\, Z_t}$$
+$$G_t = e^{ \; \text{drift} \;+\; \sigma_p \;\cdot\; Z_t}$$
 
 This is the heart of the simulation — the formula that converts yesterday's randomness into today's price movement.
 
@@ -383,7 +383,7 @@ port_std * np.sqrt(252)
 
 **Formula 17: 95% Confidence Interval (Percentiles)** ([lines 144–147](https://github.com/Guannings/MonteCarlo-Portfolio-Optimizer/blob/49b0e61/Gemini_generated%20_codes/Monte-Carlo%20Sim/latest_code.py#L144-L147))
 
-$$\text{CI}_{95\%} = \big[\, P_{2.5},\;\; P_{97.5} \,\big]$$
+$$\text{CI}_{95\%} = \big[ \; P_{2.5} \;\;\; P_{97.5} \; \big]$$
 
 Imagine sorting all 1,000,000 ending values from smallest to largest. The **2.5th percentile** is the value at position 25,000 (2.5% of the way through the list) — only 2.5% of simulations did worse than this. The **97.5th percentile** is at position 975,000 — only 2.5% did better.
 
@@ -672,11 +672,11 @@ $$R_p = w_1 r_1 + w_2 r_2$$
 
 The **variance of a sum** of random variables is NOT just the sum of variances. The full rule from probability theory is:
 
-$$\text{Var}(aX + bY) = a^2\text{Var}(X) + b^2\text{Var}(Y) + 2ab\,\text{Cov}(X,Y)$$
+$$\text{Var}(aX + bY) = a^2 \text{Var}(X) + b^2 \text{Var}(Y) + 2ab \; \text{Cov}(X, Y)$$
 
 Applying this to our portfolio (where $a = w_1$, $b = w_2$, $X = r_1$, $Y = r_2$):
 
-$$\text{Var}(R_p) = w_1^2\,\text{Var}(r_1) + w_2^2\,\text{Var}(r_2) + 2\,w_1 w_2\,\text{Cov}(r_1, r_2)$$
+$$\text{Var}(R_p) = w_1^2 \; \text{Var}(r_1) + w_2^2 \; \text{Var}(r_2) + 2 \; w_1 w_2 \; \text{Cov}(r_1, r_2)$$
 
 **This is the key insight:** The portfolio's risk depends not just on each asset's individual risk (`Var(r₁)`, `Var(r₂)`), but also on how they interact (`Cov(r₁,r₂)`). If the covariance is negative (they move in opposite directions), the third term *reduces* the total variance. This is why mixing negatively-correlated assets reduces risk.
 
@@ -684,7 +684,7 @@ $$\text{Var}(R_p) = w_1^2\,\text{Var}(r_1) + w_2^2\,\text{Var}(r_2) + 2\,w_1 w_2
 
 For N assets, the same logic extends:
 
-$$\text{Var}(R_p) = \sum_{i=1}^{N}\sum_{j=1}^{N} w_i\, w_j\, \text{Cov}(r_i, r_j)$$
+$$\text{Var}(R_p) = \sum_{i=1}^{N}\sum_{j=1}^{N} w_i \; w_j \; \text{Cov}(r_i, r_j)$$
 
 This is a double sum: for every pair of assets (i, j), multiply their weights together and multiply by their covariance, then add everything up. Note that when i = j, `Cov(rᵢ,rᵢ) = Var(rᵢ)`, so the individual variances are included as special cases.
 
@@ -697,7 +697,7 @@ The double sum above is exactly what matrix multiplication does. If we define:
 
 Then:
 
-$$\text{Var}(R_p) = \mathbf{w}^\top \Sigma\, \mathbf{w}$$
+$$\text{Var}(R_p) = \mathbf{w}^\top \Sigma \; \mathbf{w}$$
 
 **Why this works:** The matrix multiplication `Σw` produces a vector where each entry is a weighted sum of covariances. Then `wᵀ` (the weights as a row) multiplies and sums those entries, giving the single number we need. It's a compact notation for the double sum.
 
@@ -711,7 +711,7 @@ $$\mathbf{w}^\top\Sigma\mathbf{w} = 0.6 \times 0.028 + 0.4 \times 0.014 = 0.0168
 
 ### Step 4: From variance to standard deviation
 
-$$\sigma_{p,\text{daily}} = \sqrt{\mathbf{w}^\top \Sigma\, \mathbf{w}}$$
+$$\sigma_{p,\text{daily}} = \sqrt{\mathbf{w}^\top \Sigma \; \mathbf{w}}$$
 
 The square root converts variance (squared units) back to standard deviation (same units as returns).
 
@@ -738,7 +738,7 @@ $$\sigma_{\text{annual}} = \sqrt{252 \times \sigma^2} = \sqrt{252}\;\times\;\sig
 
 ### Final formula:
 
-$$\sigma_{p,\text{annual}} = \sqrt{\mathbf{w}^\top \Sigma\, \mathbf{w}} \;\times\; \sqrt{252}$$
+$$\sigma_{p,\text{annual}} = \sqrt{\mathbf{w}^\top \Sigma \; \mathbf{w}} \;\times\; \sqrt{252}$$
 
 The constraint in the code checks that this value does not exceed 18%.
 
@@ -754,7 +754,7 @@ This is the mathematical model used to simulate how the portfolio's value evolve
 
 GBM assumes that the portfolio value S follows this **stochastic differential equation** (SDE):
 
-$$\frac{dS}{S} = \mu\, dt + \sigma\, dW$$
+$$\frac{dS}{S} = \mu \; dt + \sigma \; dW$$
 
 In words: "The percentage change in portfolio value over a tiny time interval dt equals:
 - a deterministic drift `μ dt` (the expected return), plus
@@ -768,17 +768,17 @@ To simulate prices, we need to solve for S(t). Using **Itô's Lemma** (the stoch
 
 Let $Y = \ln(S)$. By Itô's Lemma:
 
-$$dY = d(\ln S) = \frac{1}{S}\,dS - \frac{1}{2}\frac{1}{S^2}(dS)^2$$
+$$dY = d(\ln S) = \frac{1}{S} \; dS - \frac{1}{2}\frac{1}{S^2}(dS)^2$$
 
 The `- (1/2)(1/S²)(dS)²` term is what makes stochastic calculus different from ordinary calculus. In ordinary calculus, `(dt)²` is negligible. But in stochastic calculus, `(dW)²` behaves like `dt` (this is called the **quadratic variation** of Brownian motion), so this term does NOT vanish.
 
-Substituting $dS = S(\mu\,dt + \sigma\,dW)$:
+Substituting $dS = S(\mu \; dt + \sigma \; dW)$:
 
-$$(dS)^2 = S^2(\mu\,dt + \sigma\,dW)^2 \approx S^2 \sigma^2\,dt \qquad\text{(keeping only the }dt\text{-order term)}$$
+$$(dS)^2 = S^2(\mu \; dt + \sigma \; dW)^2 \approx S^2 \sigma^2 \; dt \qquad\text{(keeping only the }dt\text{-order term)}$$
 
 Therefore:
 
-$$dY = \left(\mu - \tfrac{1}{2}\sigma^2\right)dt + \sigma\,dW$$
+$$dY = \left(\mu - \tfrac{1}{2}\sigma^2\right)dt + \sigma \; dW$$
 
 The `- ½σ²` is the **Itô correction**. It emerges naturally from the mathematics of stochastic calculus and is NOT an arbitrary adjustment.
 
@@ -802,7 +802,7 @@ $$S_t = S_{t-1} \times \exp\!\left[\left(\mu - \tfrac{1}{2}\sigma^2\right)\Delta
 
 The code uses daily time steps where Δt = 1/252. However, since the input parameters (port_ret and port_std) are already in daily units (not annualized), the code simplifies to Δt = 1:
 
-$$\text{drift} = \mu_p - \tfrac{1}{2}\sigma_p^2 \qquad G_t = e^{\,\text{drift} + \sigma_p Z} \qquad S_t = S_{t-1} \times G_t$$
+$$\text{drift} = \mu_p - \tfrac{1}{2}\sigma_p^2 \qquad G_t = e^{ \; \text{drift} + \sigma_p Z} \qquad S_t = S_{t-1} \times G_t$$
 
 ### Why the Itô correction matters — numerical proof
 
@@ -984,7 +984,7 @@ $$\text{Position of the }p\text{-th percentile} = \left\lceil \frac{p}{100} \tim
 
 Together they form the **95% confidence interval**: the middle 95% of outcomes fall between these two values. This is a standard statistical convention — 95% is wide enough to be reliable but narrow enough to be informative.
 
-$$\text{95\% CI} = \big[\, P_{2.5},\;\; P_{97.5} \,\big]$$
+$$\text{95\% CI} = \big[ \; P_{2.5} \;\; P_{97.5} \; \big]$$
 
 **Interpretation:** "We are 95% confident that the true outcome will fall within this range." Or equivalently: "In 950,000 out of 1,000,000 simulated futures, the portfolio ended up between $X and $Y."
 
@@ -992,7 +992,7 @@ $$\text{95\% CI} = \big[\, P_{2.5},\;\; P_{97.5} \,\big]$$
 
 For a Normal distribution with mean μ and standard deviation σ:
 
-$$P_{2.5} \approx \mu - 1.96\,\sigma, \qquad P_{97.5} \approx \mu + 1.96\,\sigma$$
+$$P_{2.5} \approx \mu - 1.96 \; \sigma, \qquad P_{97.5} \approx \mu + 1.96 \; \sigma$$
 
 The factor 1.96 comes from the inverse of the Normal cumulative distribution function. However, the code does not assume normality — it directly computes percentiles from the raw simulation data, which is more robust.
 
