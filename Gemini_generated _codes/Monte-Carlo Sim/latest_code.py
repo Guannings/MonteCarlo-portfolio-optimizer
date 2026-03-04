@@ -62,8 +62,7 @@ def run_final_super_sim():
         {'type': 'ineq', 'fun': lambda x: np.sum(x[:n_stocks]) - 0.50},  # Stocks Min 50%
         {'type': 'ineq', 'fun': lambda x: 0.96 - np.sum(x[:n_stocks])},  # Stocks Max 96%
         {'type': 'ineq', 'fun': lambda x: np.sum(x[n_stocks:n_stocks + n_bonds]) - 0.02},  # Bonds Min 2%
-        {'type': 'ineq', 'fun': lambda x: np.sum(x[n_stocks + n_bonds:n_stocks + n_bonds + n_gold]) - 0.02},
-        # Gold Min 2%
+        {'type': 'ineq', 'fun': lambda x: np.sum(x[n_stocks + n_bonds:n_stocks + n_bonds + n_gold]) - 0.02},  # Gold Min 2%
         {'type': 'ineq', 'fun': lambda x: np.sum(x[-n_crypto:]) - 0.03},  # Crypto Min 3%
         {'type': 'ineq', 'fun': lambda x: 0.08 - np.sum(x[-n_crypto:])}  # Crypto Max 8%
     ]
