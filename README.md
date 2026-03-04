@@ -106,7 +106,7 @@ Below is every formula the code uses, listed in the order they appear. No prior 
 
 ---
 
-**Formula 1: Daily Return** (line 38)
+**Formula 1: Daily Return** ([line 38](https://github.com/Guannings/MonteCarlo-Portfolio-Optimizer/blob/49b0e61/Gemini_generated%20_codes/Monte-Carlo%20Sim/latest_code.py#L38))
 
 ```
 Daily Return = (today's price - yesterday's price) / yesterday's price
@@ -124,7 +124,7 @@ returns = prices.pct_change().dropna()
 
 ---
 
-**Formula 2: Mean Daily Return** (line 45)
+**Formula 2: Mean Daily Return** ([line 45](https://github.com/Guannings/MonteCarlo-Portfolio-Optimizer/blob/49b0e61/Gemini_generated%20_codes/Monte-Carlo%20Sim/latest_code.py#L45))
 
 ```
 Mean Daily Return = (Day 1 return + Day 2 return + ... + Day N return) / N
@@ -142,7 +142,7 @@ mean_returns = returns.mean()
 
 ---
 
-**Formula 3: Covariance Matrix** (line 44)
+**Formula 3: Covariance Matrix** ([line 44](https://github.com/Guannings/MonteCarlo-Portfolio-Optimizer/blob/49b0e61/Gemini_generated%20_codes/Monte-Carlo%20Sim/latest_code.py#L44))
 
 ```
 Covariance between A and B = average of [(A's return - A's mean) × (B's return - B's mean)]
@@ -164,7 +164,7 @@ cov_matrix = returns.cov()
 
 ---
 
-**Formula 4: Expected Portfolio Return (Objective Function)** (line 51)
+**Formula 4: Expected Portfolio Return (Objective Function)** ([lines 50–51](https://github.com/Guannings/MonteCarlo-Portfolio-Optimizer/blob/49b0e61/Gemini_generated%20_codes/Monte-Carlo%20Sim/latest_code.py#L50-L51))
 
 ```
 Portfolio Return = (w1 × r1 + w2 × r2 + w3 × r3 + ... + w6 × r6) × 252
@@ -186,7 +186,7 @@ In the code:
 
 ---
 
-**Formula 5: Portfolio Volatility (Risk Constraint)** (line 55)
+**Formula 5: Portfolio Volatility (Risk Constraint)** ([lines 54–56](https://github.com/Guannings/MonteCarlo-Portfolio-Optimizer/blob/49b0e61/Gemini_generated%20_codes/Monte-Carlo%20Sim/latest_code.py#L54-L56))
 
 ```
 Portfolio Volatility = √(wᵀ × Σ × w) × √252
@@ -214,7 +214,7 @@ The constraint then checks: `18% - port_vol ≥ 0`. In plain English: "the portf
 
 ---
 
-**Formula 6: Sum-to-One Constraint** (line 59)
+**Formula 6: Sum-to-One Constraint** ([line 59](https://github.com/Guannings/MonteCarlo-Portfolio-Optimizer/blob/49b0e61/Gemini_generated%20_codes/Monte-Carlo%20Sim/latest_code.py#L59))
 
 ```
 w1 + w2 + w3 + w4 + w5 + w6 = 1.0
@@ -230,7 +230,7 @@ The `'eq'` means "equality constraint." The function `np.sum(x) - 1` must equal 
 
 ---
 
-**Formula 7: Portfolio Daily Return (for Monte Carlo)** (line 123)
+**Formula 7: Portfolio Daily Return (for Monte Carlo)** ([line 123](https://github.com/Guannings/MonteCarlo-Portfolio-Optimizer/blob/49b0e61/Gemini_generated%20_codes/Monte-Carlo%20Sim/latest_code.py#L123))
 
 ```
 Portfolio Daily Return = w1 × r1 + w2 × r2 + ... + w6 × r6
@@ -246,7 +246,7 @@ port_ret = np.dot(final_weights, returns.mean())
 
 ---
 
-**Formula 8: Portfolio Variance** (line 124)
+**Formula 8: Portfolio Variance** ([line 124](https://github.com/Guannings/MonteCarlo-Portfolio-Optimizer/blob/49b0e61/Gemini_generated%20_codes/Monte-Carlo%20Sim/latest_code.py#L124))
 
 ```
 Portfolio Variance = wᵀ × Σ × w
@@ -260,7 +260,7 @@ port_cov = np.dot(final_weights.T, np.dot(returns.cov(), final_weights))
 
 ---
 
-**Formula 9: Portfolio Standard Deviation** (line 125)
+**Formula 9: Portfolio Standard Deviation** ([line 125](https://github.com/Guannings/MonteCarlo-Portfolio-Optimizer/blob/49b0e61/Gemini_generated%20_codes/Monte-Carlo%20Sim/latest_code.py#L125))
 
 ```
 Portfolio Std Dev = √(Portfolio Variance)
@@ -274,7 +274,7 @@ port_std = np.sqrt(port_cov)
 
 ---
 
-**Formula 10: GBM Drift** (line 127)
+**Formula 10: GBM Drift** ([line 127](https://github.com/Guannings/MonteCarlo-Portfolio-Optimizer/blob/49b0e61/Gemini_generated%20_codes/Monte-Carlo%20Sim/latest_code.py#L127))
 
 ```
 Drift = Portfolio Daily Return - 0.5 × Portfolio Variance
@@ -296,7 +296,7 @@ drift = port_ret - 0.5 * port_cov
 
 ---
 
-**Formula 11: Random Shocks (Z-scores)** (line 128)
+**Formula 11: Random Shocks (Z-scores)** ([line 128](https://github.com/Guannings/MonteCarlo-Portfolio-Optimizer/blob/49b0e61/Gemini_generated%20_codes/Monte-Carlo%20Sim/latest_code.py#L128))
 
 ```
 Z = a random number drawn from a Normal Distribution with mean 0 and standard deviation 1
@@ -314,7 +314,7 @@ Z = np.random.normal(0, 1, (n_days, n_sims))
 
 ---
 
-**Formula 12: Daily Growth Factor (GBM Core)** (line 129)
+**Formula 12: Daily Growth Factor (GBM Core)** ([line 129](https://github.com/Guannings/MonteCarlo-Portfolio-Optimizer/blob/49b0e61/Gemini_generated%20_codes/Monte-Carlo%20Sim/latest_code.py#L129))
 
 ```
 Daily Growth = e^(Drift + Standard Deviation × Z)
@@ -337,7 +337,7 @@ daily_growth = np.exp(drift + port_std * Z)
 
 ---
 
-**Formula 13: Path Simulation (Compounding)** (line 134)
+**Formula 13: Path Simulation (Compounding)** ([lines 131–134](https://github.com/Guannings/MonteCarlo-Portfolio-Optimizer/blob/49b0e61/Gemini_generated%20_codes/Monte-Carlo%20Sim/latest_code.py#L131-L134))
 
 ```
 Today's Value = Yesterday's Value × Today's Growth Factor
@@ -357,7 +357,7 @@ After this loop, each of the 1,000,000 columns is a different "alternate univers
 
 ---
 
-**Formula 14: CAGR (Compound Annual Growth Rate)** (line 139)
+**Formula 14: CAGR (Compound Annual Growth Rate)** ([line 139](https://github.com/Guannings/MonteCarlo-Portfolio-Optimizer/blob/49b0e61/Gemini_generated%20_codes/Monte-Carlo%20Sim/latest_code.py#L139))
 
 ```
 CAGR = (Ending Value / Starting Value) ^ (1 / Number of Years) - 1
@@ -379,7 +379,7 @@ This is computed for each of the 1,000,000 simulations, producing 1,000,000 diff
 
 ---
 
-**Formula 15: Sharpe Ratio** (line 141)
+**Formula 15: Sharpe Ratio** ([line 141](https://github.com/Guannings/MonteCarlo-Portfolio-Optimizer/blob/49b0e61/Gemini_generated%20_codes/Monte-Carlo%20Sim/latest_code.py#L141))
 
 ```
 Sharpe Ratio = (Mean CAGR - Risk-Free Rate) / Annualized Volatility
@@ -399,7 +399,7 @@ sharpe = (mean_cagr - 0.035) / (port_std * np.sqrt(252))
 
 ---
 
-**Formula 16: Annualized Volatility** (line 153)
+**Formula 16: Annualized Volatility** ([line 153](https://github.com/Guannings/MonteCarlo-Portfolio-Optimizer/blob/49b0e61/Gemini_generated%20_codes/Monte-Carlo%20Sim/latest_code.py#L153))
 
 ```
 Annual Volatility = Daily Standard Deviation × √252
@@ -413,7 +413,7 @@ port_std * np.sqrt(252)
 
 ---
 
-**Formula 17: 95% Confidence Interval (Percentiles)** (lines 144–147)
+**Formula 17: 95% Confidence Interval (Percentiles)** ([lines 144–147](https://github.com/Guannings/MonteCarlo-Portfolio-Optimizer/blob/49b0e61/Gemini_generated%20_codes/Monte-Carlo%20Sim/latest_code.py#L144-L147))
 
 ```
 Lower Bound = the value below which only 2.5% of outcomes fall
@@ -435,7 +435,7 @@ The code computes this for both the raw dollar values and the CAGRs.
 
 ---
 
-**Formula 18: Monthly Allocation** (line 227)
+**Formula 18: Monthly Allocation** ([line 227](https://github.com/Guannings/MonteCarlo-Portfolio-Optimizer/blob/49b0e61/Gemini_generated%20_codes/Monte-Carlo%20Sim/latest_code.py#L227))
 
 ```
 Amount Per Asset = Monthly Budget × Weight
