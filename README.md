@@ -883,7 +883,7 @@ This is the **CAGR formula**. It answers: "what constant annual rate would turn 
 
 With P₀ = $100,000, T = 5 years, and each simulation producing a different Pₜ:
 
-$$\text{CAGR} = \left(\frac{\text{ending\_value}}{100{,}000}\right)^{1/5} - 1$$
+$$\text{CAGR} = \left(\frac{\text{ending value}}{100{,}000}\right)^{1/5} - 1$$
 
 **Worked example:**
 - Start: $100,000. End: $207,893.
