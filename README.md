@@ -41,6 +41,40 @@ Market Data: Data fetched from third-party APIs (e.g., Yahoo Finance) may be del
 
 ====================================================================================
 
+# Getting Started
+
+**1. Clone the Repository**
+
+```bash
+git clone https://github.com/Guannings/MonteCarlo-Portfolio-Optimizer.git
+cd MonteCarlo-Portfolio-Optimizer
+```
+
+**2. Create a Virtual Environment (Recommended)**
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate        # macOS / Linux
+.venv\Scripts\activate           # Windows
+```
+
+**3. Install Dependencies**
+
+```bash
+pip install numpy pandas yfinance scipy matplotlib
+```
+
+**4. Run the Simulation**
+
+```bash
+cd "Gemini_generated _codes/Monte-Carlo Sim"
+python latest_code.py
+```
+
+> **Reminder:** The script defaults to **1,000,000** simulations. If your machine has less than 32 GB RAM, open `latest_code.py` and change `n_sims = 1000000` to `10000` before running.
+
+====================================================================================
+
 # Project Case Study: Quantitative Portfolio Optimization Engine
 **1. Executive Summary**
 
